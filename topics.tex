@@ -1,0 +1,326 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[hmargin=1.3cm,vmargin=2cm,twocolumn]{geometry}
+\usepackage[utf8x]{inputenc}
+\usepackage{hyperref}
+\usepackage{makeidx}
+\makeindex
+\usepackage{amsmath}
+\usepackage{stmaryrd}
+\usepackage{amssymb}
+
+\newcommand{\slidesone}[1]{slides (\href
+{http://lara.epfl.ch/w/_media/sav12:sav12-lecture01.pdf?cache=cache}
+{lecture 1}, #1)}
+\newcommand{\slidestwo}[1]{slides (\href
+{http://lara.epfl.ch/w/_media/sav12:sav12-lecture02.pdf?cache=cache}
+{lecture 2}, #1)}
+\newcommand{\slidesthree}[1]{slides (\href
+{http://lara.epfl.ch/w/_media/sav12:sav12-lecture03.pdf?cache=cache}
+{lecture 3}, #1)}
+\newcommand{\slidesfour}[1]{slides (\href
+{http://lara.epfl.ch/w/_media/sav12:sav12-lecture04.pdf?cache=cache}
+{lecture 4}, #1)}
+\newcommand{\slidesfive}[1]{slides (\href
+{http://lara.epfl.ch/w/_media/sav12:sav12-lecture05.pdf?cache=cache}
+{lecture 5}, #1)}
+
+\newcommand{\HLB}{\href{http://lara.epfl.ch/web2010/sav09:hoare_logic_basics}
+{Hoare Logic Basics, week 2}}
+\newcommand{\CVCG}{\href{http://lara.epfl.ch/web2010/sav09:compositional_vcg}
+{Compositional VCG, weeks 2-3}}
+\newcommand{\FVCG}{\href{http://lara.epfl.ch/web2010/sav08:forward_vcg}
+{Forward VCG, week 3}}
+\newcommand{\BVCG}{\href{http://lara.epfl.ch/web2010/sav08:backward_vcg}
+{Backward VCG, week 3}}
+\newcommand{\SRHL}{\href
+{http://lara.epfl.ch/web2010/sav09:syntactic_rules_for_hoare_logic}
+{Syntactic rules for Hoare logic, week 3}}
+
+\newcommand{\sqleq}{\ensuremath{\sqsubseteq}}
+
+%opening
+\title{Synthesis, Analysis \& Verification\\Topics Index}
+\author{Diggory Hardy}
+
+\begin{document}
+
+\maketitle
+\begin{abstract}
+ will the program crash, does it terminate, is the result correct, how long
+will it take to run, how much power will it consume, will it interfere with
+other jobs, will it leak private information
+\end{abstract}
+This is a summary of notes available at \url{http://lara.epfl.ch/w/sav12:top}.
+
+\tableofcontents
+
+\section{Introduction}
+\subsection{Verification Condition Generation}\index{verification condition
+generation|textbf}
+The first step in proving program correctness is generating verification
+conditions.
+Example in \slidesthree{p3}.
+
+Section \ref{coderep} covers representation of code and predicates.
+
+\subsubsection*{Providing a specification}\index{specification}
+Intro \slidesone{p33}: add preconditions \verb$require( ... )$ on inputs
+and postcondition \verb$ensuring( ... )$ on output.
+
+\textbf{Loop invariants:}\index{loop invariant}
+Intro \slidesone{p38}: a condition which holds when initially
+encountered, which is preserved by the loop, and is strong enough to prove
+the postcondition.
+
+\subsection{Proving VCs}
+Once you've got verification conditions, you can attempt to prove them or find
+counter-examples. Section {logic} covers the logic systems needed to reason
+about VCs, while section {abstrinterp} looks at how abstractions can simplify
+code sufficiently to reason about non-trivial functions.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\label{coderep}
+\section{Code representations}
+\subsection{Guarded Command Language}\index{guarded command language|textbf}
+\slidesthree{p17}:
+\begin{itemize}
+ \item \verb$assume(F)$ \index{assume} — $F$ is required to hold in any
+execution (assume any exceptions didn't happen)
+ \item \verb$s1 ; s2$ \index{sequential composition} — do $s_1$ then $s_2$
+ \item \verb$s1 [] s2$ \index{drunk if} — do $s_1$ or $s_2$ arbitrarily (drunk
+if)
+ \item \verb$s*$ — execute $s$ any number of times
+ \item \verb$havoc(x)$ \index{havoc} — after execution, $x$ may have any value
+while other variables remain unchanged
+\end{itemize}
+Guarded commands can be mapped to relations: \slidesthree{18}.
+
+$x = E$ can be written as \verb$havox(x); assume(x==E)$ (slide 25).
+
+\textbf{Computing from a program:} \index{guarded command language!computing}
+\slidesfour{p3}
+
+Map \verb$while(C){s1}; s2$ to \verb$( assume(C); s1 )* ; assume(!C); s2$
+\index{guarded command language!loops}.
+
+\subsection{Relations} \index{relations|textbf} \index{non-determinisity}
+Programs are not always deterministic (in theory, they allow randomness):
+\slidesthree{p15}. We use relations: $(x,x')∈r$ if and only if the
+operation specified by $r$ can map state $x$ to $x'$. Relations are not
+automatically functions: for some initial state $x$ there can be zero, one or
+several results $x'$.
+
+\textbf{Identity relation:} \index{relations!identity} The identity relation on
+set $S$ is $\Delta_S = \{(s,s) | s∈S\}$.
+
+\textbf{Computing:} \index{relations!computing}
+pages 2 onwards, slide set 4, week 2.
+
+\textbf{Normal Form Theorem:}\index{normal form} \slidesfour{p13}
+
+\subsubsection{Hoare Logic} \index{Hoare logic|textbf}\index{Hoare triple}
+Basics: \HLB.
+Hoare triples are some $\{P\} r \{Q\}$ where $P$ is a precondition, $r$ a
+relation and $Q$ a postcondition. Usually $P,Q$ are subsets of $S$, the set of
+all states.
+\[ \{P\} r \{Q\} \mbox{ means } \forall s,s'∈S.(s∈P \land (s,s')∈r \rightarrow
+s'∈Q \]
+
+One can calculate some $P$ or $Q$ satisfying the triple:
+the \textbf{weakest precondition} \index{weakest precondition} or
+\textbf{strongest postcondition}\index{strongest postcondition}.
+\begin{align*}
+ wp(r,Q) &= \{s∈S | \forall s'∈S. (s,s') ∈r \rightarrow s'∈Q\} \\
+ sp(P,r) &= \{s'| \exists s.s∈P \land (s,s')∈r\}
+\end{align*}
+
+Obtaining verification conditions for Hoare triples:
+\CVCG (at
+end).
+
+Manipulations (strengthening, weakening, some stuff on loops and composition):
+\SRHL.
+
+\subsubsection{Operations on relations}
+From \CVCG:
+
+Assignment, assume, havoc.\index{assignment}\index{assume}\index{havoc}
+
+Union, sequential composition \index{relations!composing} \index{sequential
+composition}:
+\[ \{(x,y)|f(x,y)\} \circ \{(y,z)|g(y,z)\} = \{(x,z)|\exists y. f(x,y) \land
+g(y,z) \} \]
+
+More: \FVCG, \BVCG.
+
+\subsubsection{Invariants and loops} \index{Hoare logic!invariants}
+Introduction to invariants on loops for Hoare triples:
+\href{http://lara.epfl.ch/w/sav12:invariant_inference_perspective}{Monday, week
+4}.
+
+\subsection{Control Flow Graphs} \index{control flow graphs}
+Transition systems are essentially relations between states: 
+\href{http://lara.epfl.ch/w/sav11:transition_system}{Monday, week 4}
+(also contains a note about nested loops). CFGs are graphs of states and
+transitions.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\label{abstrinterp}
+\section{Abstract Domains} \index{abstract domains}
+\subsection{Introduction}
+The basic idea of abstract interpretation is to consider the program as a
+control flow graph on sets of states. From Monday, week 4:
+\begin{itemize}
+\item
+\href{http://lara.epfl.ch/w/_media/sav12:lecture8.pdf?cache=cache}{slides}
+\item
+\href{http://lara.epfl.ch/w/cc09:sets_of_states_at_each_program_point}
+{\emph{Sets of states at each program point}}
+\item \href{http://lara.epfl.ch/w/cc09:range_analysis_example}
+{\emph{Range analysis}} \index{abstract interpretation!range analysis}
+\end{itemize}
+
+\subsection{Lattices} \index{lattices}
+Introduced Tuesday week 4
+(\href{http://lara.epfl.ch/w/_media/sav12:lecture9.pdf?cache=cache}{slides}).
+
+\subsubsection{Partial order}
+\href{http://lara.epfl.ch/w/partial_order}{\textbf{Partial order}}
+\index{partial order}
+($≤$): must, for all $x,y,z$, satisfy
+\begin{itemize}
+ \item $x≤y$ (reflexivity)
+ \item $x≤y \land y≤x \rightarrow x=y$ (antisymmetry)
+ \item $x≤y \land y≤x \rightarrow x≤z$ (transitivity)
+\end{itemize}
+\emph{Upper bound}, \emph{maximal element}, \emph{greatest element},
+\emph{least upper bound} (lub, $\sqcup$), etc. and \emph{monotonic
+functions} are defined on the same page.
+
+\subsubsection{Lattices}
+Defn: a \textbf{lattice} is a partial order in which every two-element set has
+a least upper bound and greatest lower bound.
+\href{http://lara.epfl.ch/w/sav08:lattices}{Definition and corollaries}.
+
+Lattices are used to
+\href{http://lara.epfl.ch/w/sav09:partial_orders_for_approximation}
+{approximate states}.
+
+Products of lattices can themselves be lattices:
+\href{http://lara.epfl.ch/w/sav09:products_of_lattices}
+{Monday week 5}. \index{lattices!products of}
+
+\subsubsection{Fixed points} \index{fixed points}
+Given a function $f:A \rightarrow A$ on some domain $A$, $x∈A$ is a fixed point
+of $f$ iff $f(x) = x$. See \href{http://lara.epfl.ch/w/sav08:fixpoints}{wiki}.
+
+\textbf{Tarski's fixed point theorem}:
+\href{http://lara.epfl.ch/w/sav08:tarski_s_fixpoint_theorem}{week 4}
+\index{fixed point!Tarski's theorem} \index{Tarski's fixed point theorem}
+More definitions:
+\begin{itemize}
+ \itemsep 0pt
+ \item $Post = \{x|G(x) \sqleq x\}$\index{post}
+ \item $Pre = \{ x | x \sqleq G(x) \}$
+ \item $Fix = \{x|G(x) = x\}$
+\end{itemize}
+Then (Tarski's thm): Let $(A, \sqleq)$ be a complete lattice and $G:A
+\rightarrow A$ be a monotonic function. Then $\bigsqcap Post$ is the least
+element of $Fix$ and $\bigsqcup Pre$ is the greatest element of $Fiv$.
+
+\subsubsection{Galois Connection}
+From \href{http://lara.epfl.ch/w/sav09:galois_connection}{wiki}: a Galois
+connection is defined by two monotonic functions $\alpha:C → A$ and $\gamma:A→C$
+where $(C,≤)$ and $(A,\sqleq)$ are partial orders and for all $a∈A$ and $c∈C$,
+\[ \alpha(c) \sqleq a \Leftrightarrow c ≤ \gamma(a) \]
+
+Usage terminology:
+\href{http://lara.epfl.ch/w/sav12:using_galois_connection_in_abstraction_interpretation}
+{wiki}.
+
+\subsection{Transition systems} \index{transition systems}
+Transition systems are given by a set of initial states $Init \subseteq S$ and
+a relation $r \subseteq S^2$. The set of reachable states is then
+$sp(Init,r^*)$. Introduction, with notes on fixed points:
+\href{http://lara.epfl.ch/w/sav12:abstract_interpretation_of_transition_system}
+{Monday, week 5}.
+
+\subsubsection{Collecting semantics} \index{collecting semantics}
+Collecting semantics give us, for every program point/vertex in CFG a set of
+possible variable states (i.e. a mapping $V → 2^S$ for program points $V$ and
+variable states $S$). Introduction:
+\href{http://lara.epfl.ch/w/sav11:transition_system_and_collecting_semantics}
+{\emph{Transition systems and collecting semantics}, Tuesday week 5}.
+More on this: 
+\href{http://lara.epfl.ch/w/sav09:collecting_semantics_for_example_program}
+{example},
+\href{http://lara.epfl.ch/w/sav09:collecting_semantics}
+{additional notes}.
+
+From Monday week 6,
+\href{http://lara.epfl.ch/w/sav09:variable_range_analysis_for_example_program}
+{example using ranges as abstract domain}. \index{range analysis!example}
+
+\subsubsection{Abstract reachability} \index{abstract reachability}
+Abstract reachability tells us, given a set of predicates, which predicates
+hold at each node of the CFG.
+\href{http://lara.epfl.ch/w/_media/sav12:predabs1.pdf?cache=cache}
+{Hossein's slides (Friday, week 5).}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\label{logic}
+\section{Logic}
+
+\subsection{Presburger Arithmetic}\index{Presburger arithmetic|textbf}
+Introduced \slidestwo{p3}.
+
+\textbf{Propositional formulas:}\index{propositional formulas} expressions
+involving the constants $true, false$, propositional variables $p,q, ...$ and
+logical operators $\land \lor \lnot \rightarrow \leftrightarrow$. $p \rightarrow
+q$ is equivalent to $\lnot p \lor q$.
+
+\textbf{First order logic:}\index{first order logic} extension of propositional
+logic with equality $=$, predicate symbols $P,Q,...$, function symbols
+$f,g,...$, variables $x,y,...$ in some domain $D$, for-all and exists
+quantifiers $\forall \; \exists$.
+First order logic formulas are the closure of the set:
+\[ \{\lnot P, P \land Q,
+P\lor Q, P \rightarrow Q, P \leftrightarrow Q, \forall x.P, \exists x.P | P,Q
+\mbox{ are first-order formulas} \} \]
+
+Formulas are \textbf{valid}\index{valid} if for all interpretations of
+unqualified symbols they are true, \textbf{satisfiable}\index{satisfiable} if
+for some interpretation they are true, and
+\textbf{unsatisfiable}\index{unsatisfiable} if not satisfiable.
+
+\subsubsection{Quantifier Elimination}\index{quantifier elimination}
+This was covered in the \href{http://lara.epfl.ch/w/sav12:lab_03}{Friday,
+week 3}, and allows rewriting Presburgher arithmetic formulas without
+existential quantifiers.
+
+\subsubsection{More}
+Solving (exercise, hints at efficient code):
+\href{http://lara.epfl.ch/w/sav12:calculating_solutions_of_pa_formulas}{Monday,
+week 4} \index{Presburger arithmetic!solving}
+
+
+
+\section{Loop Invariant Inference}
+???
+
+\textbf{predicate abstraction}
+
+\textbf{abstract interpretation and data-flow analysis}
+
+\textbf{pointer analysis, typestate}
+
+
+%\clearpage
+\addcontentsline{toc}{section}{Index}
+\printindex
+
+\end{document}
